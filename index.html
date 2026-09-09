@@ -1,0 +1,429 @@
+```html
+<!DOCTYPE html>
+<html lang="fi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linux-terminaalin pikakierros</title>
+    <style>
+        :root {
+            --bg-dark: #0b1120;
+            --bg-card: #0f172a;
+            --border: #1e293b;
+            --text-main: #e2e8f0;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --cmd: #facc15;
+            --arg: #60a5fa;
+            --flag: #fb923c;
+        }
+
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+
+        .slide {
+            height: 100vh;
+            width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 40px 10%;
+            box-sizing: border-box;
+            border-bottom: 2px solid var(--border);
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 2.2rem;
+            color: var(--accent);
+            margin-bottom: 1.5rem;
+            border-left: 5px solid var(--accent);
+            padding-left: 15px;
+        }
+
+        h3 {
+            font-size: 1.5rem;
+            color: #f8fafc;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        p {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+        }
+
+        .subtitle {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+        }
+
+        /* Värikoodaus / Syntax Highlighting */
+        .hl-cmd {
+            color: var(--cmd);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .hl-arg {
+            color: var(--arg);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .hl-flag {
+            color: var(--flag);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        /* Rakenteet */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 25px;
+            border-radius: 10px;
+        }
+
+        .shortcut-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .shortcut-list li {
+            background: var(--bg-card);
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .kbd {
+            background: var(--border);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        pre.code-box {
+            background-color: #020617;
+            border: 1px solid var(--border);
+            border-left: 4px solid #10b981;
+            border-radius: 8px;
+            padding: 20px;
+            font-family: "Courier New", Courier, monospace;
+            font-size: 1.4rem;
+            color: #a7f3d0;
+            margin: 10px 0 20px 0;
+            white-space: pre-wrap;
+        }
+
+        .code-comment {
+            color: #64748b;
+            font-family: -apple-system, sans-serif;
+            font-size: 1.1rem;
+            margin-left: 10px;
+        }
+
+        .help-banner {
+            background: rgba(56, 189, 248, 0.1);
+            border: 1px dashed var(--accent);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 1.1rem;
+        }
+
+        /* Komentojen otsikkorakenne */
+        .cmd-header {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .cmd-badge {
+            background: var(--cmd);
+            color: #020617;
+            font-family: monospace;
+            font-size: 2.5rem;
+            font-weight: bold;
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .cmd-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #fff;
+            margin: 0;
+        }
+
+        .cmd-origin {
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            font-family: monospace;
+            margin: 0;
+        }
+
+        .flag-list {
+            margin-top: 15px;
+            font-size: 1.2rem;
+        }
+
+        .flag-list li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Slide 1: Otsikko -->
+    <div class="slide">
+        <span
+            style="display:inline-block; background:#0369a1; color:#38bdf8; padding:5px 12px; border-radius:6px; font-weight:bold; font-size:1rem; width:max-content; margin-bottom:15px; text-transform:uppercase; letter-spacing:1px;">ICT-opiskelijan
+            tekninen opas</span>
+        <h1>Linux-terminaalin pikakierros</h1>
+        <p class="subtitle">Linux-terminaali helposti luettavana...</p>
+    </div>
+
+    <!-- Slide 2: Mikä on terminaali? -->
+    <div class="slide">
+        <h2>Mikä on terminaali?</h2>
+
+        <div class="card" style="margin-bottom: 15px;">
+            <h3>📚 Komentorivikäyttöliittymä (CLI)</h3>
+            <p style="margin-bottom: 0;">Tekstipohjainen tapa ohjata tietokonetta ilman graafista ikkunointia (GUI).</p>
+        </div>
+
+        <div class="card" style="margin-bottom: 15px;">
+            <h3>💻 Kuori (Shell) välissä</h3>
+            <p style="margin-bottom: 0;">Terminaali on vain ikkuna. Varsinainen tulkki (esim. Bash tai Zsh) kääntää
+                komentosi käyttöjärjestelmän ytimelle.</p>
+        </div>
+
+        <div class="card">
+            <h3>🌍 Palvelinten standardi</h3>
+            <p style="margin-bottom: 0;">Linux-palvelimilla ei usein ole graafista työpöytää. Terminaali on ainoa tapa
+                hallita niitä.</p>
+        </div>
+    </div>
+
+    <!-- Slide 3: Ennen kuin menemme asiaan -->
+    <div class="slide">
+        <h2>Ennen kuin menemme asiaan otetaan pari asiaa haltuun</h2>
+
+        <div class="card" style="margin-bottom: 25px;">
+            <h3 style="color: var(--accent);">Mitä tulostamisella tarkoitetaan?</h3>
+            <p style="margin-bottom: 0;">Kun ohjeissa puhutaan <strong>tulostamisesta</strong>, se ei tarkoita paperille
+                tulostamista. Terminaalimaailmassa "tulostaminen" (print) tarkoittaa yksinkertaisesti sitä, että ohjelma
+                <strong>näyttää tekstin suoraan ruudullasi</strong>.
+            </p>
+        </div>
+
+        <h3 style="margin-bottom: 15px; color: #f8fafc;">Oleellisimmat pikanäppäimet (Nämä säästävät hermojasi)</h3>
+        <ul class="shortcut-list">
+            <li><span class="kbd">↑ / ↓</span> <span><strong>Nuolinäppäimet:</strong> Selaa aikaisemmin kirjoittamiasi
+                    komentoja (historia). Ei tarvitse kirjoittaa samaa pitkää rimpsua uudestaan.</span></li>
+            <li><span class="kbd">Tab</span> <span><strong>Sarkain (Automaattinen täydennys):</strong> Ala kirjoittaa
+                    kansion tai tiedoston nimeä ja paina Tab. Terminaali täydentää sanan loppuun ja estää
+                    kirjoitusvirheet.</span></li>
+            <li><span class="kbd">Ctrl + C</span> <span><strong>Hätäjarru:</strong> Keskeyttää ja pakottaa käynnissä
+                    olevan ohjelman tai komennon sammumaan välittömästi.</span></li>
+        </ul>
+    </div>
+
+    <!-- Slide 4: Komennon rakenne -->
+    <div class="slide">
+        <h2>Komennon rakenne: Komento, argumentit ja flägit</h2>
+        <p>Linux-komennon perussyntaksi noudattaa lähes poikkeuksetta selkeää kolmiosaista rakennetta. Tunnistat ne
+            jatkossa näistä väreistä:</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">komento</span>  <span class="hl-flag">[optiot / flägit]</span>  <span class="hl-arg">[argumentit...]</span></pre>
+
+        <div class="grid">
+            <div class="card">
+                <h3 class="hl-cmd">Komento (Command)</h3>
+                <p>Suoritettava ohjelma. Tässä esimerkissä <strong>cat</strong> lukee tiedoston sisällön ja tulostaa
+                    sen.<br><br>Esimerkki: <span class="hl-cmd">cat</span></p>
+            </div>
+            <div class="card">
+                <h3 class="hl-arg">Argumentti (Argument)</h3>
+                <p>Kohde, johon komento kohdistuu (esim. tiedoston nimi tai polku).<br><br>Esimerkki: <span
+                        class="hl-cmd">cat</span> <span class="hl-arg">loki.txt</span></p>
+            </div>
+            <div class="card">
+                <h3 class="hl-flag">Flägi / Optio (Flag)</h3>
+                <p>Määre, joka muuttaa komennon käyttäytymistä tai tulostemuotoa.<br><br>Esimerkki: <span
+                        class="hl-cmd">cat</span> <span class="hl-flag">-n</span> <span class="hl-arg">loki.txt</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="help-banner">
+            <strong>💡 Pro-vinkki:</strong> Lähes jokaisesta CLI-sovelluksesta saa lisätietoa ja kattavat käyttöohjeet
+            lisäämällä komennon perään argumentin <span class="hl-flag">--help</span> (esim. <span
+                class="hl-cmd">cat</span> <span class="hl-flag">--help</span>).
+        </div>
+    </div>
+
+    <!-- Slide 5: pwd -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">pwd</div>
+            <div>
+                <h2 class="cmd-title">Print Working Directory</h2>
+                <p class="cmd-origin">Näyttää nykyisen työhakemiston</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Tulostaa (näyttää ruudulla) nykyisen työhakemiston täydellisen polun juuresta (/)
+            alkaen.</p>
+
+        <pre class="code-box"><span class="hl-cmd">pwd</span>
+<span class="code-comment"># Tuloste: /home/opiskelija/projektit</span></pre>
+    </div>
+
+    <!-- Slide 6: cd -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">cd</div>
+            <div>
+                <h2 class="cmd-title">Change Directory</h2>
+                <p class="cmd-origin">Vaihtaa hakemistoa</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Vaihtaa nykyistä työhakemistoa järjestelmässä.</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">cd</span> <span class="hl-arg">/var/log</span>          <span class="code-comment"># Siirry argumenttina annettuun polkuun</span>
+<span class="hl-cmd">cd</span> <span class="hl-arg">..</span>                <span class="code-comment"># Siirry yksi hakemistotaso ylöspäin</span>
+<span class="hl-cmd">cd</span> <span class="hl-arg">~</span>                 <span class="code-comment"># Siirry käyttäjän kotihakemistoon</span></pre>
+    </div>
+
+    <!-- Slide 7: ls -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">ls</div>
+            <div>
+                <h2 class="cmd-title">List</h2>
+                <p class="cmd-origin">Listaa kansion sisällön</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Listaa hakemistossa olevat tiedostot ja kansiot.</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">ls</span> <span class="hl-flag">-lah</span> <span class="hl-arg">/etc</span>         <span class="code-comment"># Listaa /etc -kansion sisällön flägien määrittelemällä tavalla</span></pre>
+
+        <ul class="flag-list">
+            <li><span class="hl-flag">-l</span> : Pitkä listaus (oikeudet, omistaja, koko).</li>
+            <li><span class="hl-flag">-a</span> : Näyttää myös pisteellä alkavat piilotiedostot.</li>
+            <li><span class="hl-flag">-h</span> : Ihmiselle luettavat tiedostokoot (esim. megatavut).</li>
+        </ul>
+    </div>
+
+    <!-- Slide 8: mkdir -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">mkdir</div>
+            <div>
+                <h2 class="cmd-title">Make Directory</h2>
+                <p class="cmd-origin">Luo uuden kansion</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Luo uuden hakemiston argumenttina annettuun sijaintiin.</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">mkdir</span> <span class="hl-arg">projektit</span>
+<span class="hl-cmd">mkdir</span> <span class="hl-flag">-p</span> <span class="hl-arg">backend/src/controllers</span>  <span class="code-comment"># Luo koko hakemistopolun tarvittaessa</span></pre>
+    </div>
+
+    <!-- Slide 9: cp -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">cp</div>
+            <div>
+                <h2 class="cmd-title">Copy</h2>
+                <p class="cmd-origin">Kopioi tiedostoja tai kansioita</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Kopioi ensimmäisen argumentin (lähde) toiseen argumenttiin (kohde).</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">cp</span> <span class="hl-arg">config.json</span> <span class="hl-arg">config.backup.json</span>
+<span class="hl-cmd">cp</span> <span class="hl-flag">-r</span> <span class="hl-arg">/opt/app</span> <span class="hl-arg">/backup/app</span>        <span class="code-comment"># Rekursiivinen kansion kopiointi (-r)</span></pre>
+    </div>
+
+    <!-- Slide 10: mv -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">mv</div>
+            <div>
+                <h2 class="cmd-title">Move</h2>
+                <p class="cmd-origin">Siirtää tai uudelleennimeää</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Siirtää tai uudelleennimeää ensimmäisen argumentin toiseksi argumentiksi.</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">mv</span> <span class="hl-arg">vanha_nimi.txt</span> <span class="hl-arg">uusi_nimi.txt</span>   <span class="code-comment"># Uudelleennimeäminen</span>
+<span class="hl-cmd">mv</span> <span class="hl-arg">*.log</span> <span class="hl-arg">/var/log/arkisto/</span>        <span class="code-comment"># Siirto toiseen kansioon</span></pre>
+    </div>
+
+    <!-- Slide 11: rm -->
+    <div class="slide">
+        <div class="cmd-header">
+            <div class="cmd-badge">rm</div>
+            <div>
+                <h2 class="cmd-title">Remove</h2>
+                <p class="cmd-origin">Poistaa tiedoston tai kansion</p>
+            </div>
+        </div>
+        <p style="font-size: 1.3rem;">Poistaa argumenttina annetut tiedostot tai hakemistot pysyvästi. (Linuxissa ei ole
+            roskakoria terminallissa!)</p>
+
+        <pre
+            class="code-box"><span class="hl-cmd">rm</span> <span class="hl-arg">vanha.tmp</span>
+<span class="hl-cmd">rm</span> <span class="hl-flag">-rf</span> <span class="hl-arg">/tmp/vanha_projekti</span>        <span class="code-comment"># Poistaa kansion (-r) pakotetusti (-f)</span></pre>
+    </div>
+
+</body>
+
+</html>
+
+```
